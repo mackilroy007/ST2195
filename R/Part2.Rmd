@@ -1,0 +1,8 @@
+---
+title: "Part2"
+output: html_document
+---
+
+Question a: What are the best times and days of the week to minimise delays each year?
+
+A solution to solve this would be to take the average delay per time and day and return a value to return the given results.
