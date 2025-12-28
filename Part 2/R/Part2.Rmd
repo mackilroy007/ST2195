@@ -3,6 +3,166 @@ title: "Part2"
 output: html_document
 ---
 
+Setting up R packages
+```{r}
+# install required packages only if missing
+packages <- c("DBI", "RSQLite")
+for (pkg in packages){
+  if(!requireNamespace(pkg, quietly = TRUE)){
+    install.packages(pkg)
+  }
+}
+library(DBI)
+library(RSQLite)
+```
+
+Init DB connection
+```{r}
+# connect to SQLite
+con <- dbConnect(SQLite(), "dataverse_db.sqlite")
+
+```
+
+Loading all relevant data into DB
+```{r}
+# load zipped csv & bz2 files into SQLite
+folder <- "../../Data"
+# create list containing the files
+csv_files <- list.files(folder, pattern = "\\.csv$", full.names = TRUE)
+bz2_files <- list.files(folder, pattern = "\\.bz2$", full.names = TRUE)
+
+# import each file into the db of type .csv
+for (file in csv_files) {
+  table_name <- tools::file_path_sans_ext(basename(file))
+message("Importing CSV: ", file)
+df <- read.csv(file)
+dbWriteTable(con, table_name, df, overwrite = TRUE)
+}
+
+# import each file into the db of type .bz2
+for (file in bz2_files) {
+  table_name <- tools::file_path_sans_ext(basename(file))
+message("Importing BZ2: ", file)
+df <- read.csv(file)
+dbWriteTable(con, table_name, df, overwrite = TRUE)
+}
+```
+
+
+
 Question a: What are the best times and days of the week to minimise delays each year?
 
 A solution to solve this would be to take the average delay per time and day and return a value to return the given results.
+```{r}
+ex <- dbGetQuery(con, "SELECT 
+	agg.avg_depDelay,
+	agg.avg_arrDelay,
+	agg.avg_carrierDelay,
+	agg.avg_weatherDelay,
+	agg.avg_nasDelay,
+	agg.avg_securityDelay,
+	agg.avg_lateAircraftDelay,
+	(
+		agg.avg_depDelay +
+		agg.avg_arrDelay +
+		agg.avg_carrierDelay +
+		agg.avg_weatherDelay +
+		agg.avg_nasDelay +
+		agg.avg_securityDelay +
+		agg.avg_lateAircraftDelay 
+	) / 7 AS total_avg_delay
+FROM (
+SELECT 
+	f.DayOfWeek,
+	AVG(f.DepDelay) AS avg_depDelay,
+	AVG(f.ArrDelay) AS avg_arrDelay,
+	AVG(f.CarrierDelay) AS avg_carrierDelay,
+	AVG(f.WeatherDelay) AS avg_weatherDelay,
+	AVG(f.NASDelay) AS avg_nasDelay,
+	AVG(f.SecurityDelay) AS avg_securityDelay,
+	AVG(f.LateAircraftDelay) AS avg_lateAircraftDelay
+FROM ( 
+	SELECT 
+		DayOfWeek,
+		DepDelay,
+		ArrDelay,
+		CarrierDelay,
+		WeatherDelay,
+		NASDelay,
+		SecurityDelay,
+		LateAircraftDelay,
+		Diverted, 
+		Cancelled FROM '2004.csv'
+	UNION ALL 
+	SELECT
+		DayOfWeek,
+		DepDelay,
+		ArrDelay,
+		CarrierDelay,
+		WeatherDelay,
+		NASDelay,
+		SecurityDelay,
+		LateAircraftDelay,
+		Diverted, 
+		Cancelled FROM '2005.csv'
+	UNION ALL 
+	SELECT
+		DayOfWeek,
+		DepDelay,
+		ArrDelay,
+		CarrierDelay,
+		WeatherDelay,
+		NASDelay,
+		SecurityDelay,
+		LateAircraftDelay,
+		Diverted, 
+		Cancelled FROM '2006.csv'
+	UNION ALL 
+	SELECT
+		DayOfWeek,
+		DepDelay,
+		ArrDelay,
+		CarrierDelay,
+		WeatherDelay,
+		NASDelay,
+		SecurityDelay,
+		LateAircraftDelay,
+		Diverted, 
+		Cancelled FROM '2007.csv'
+	UNION ALL 
+	SELECT
+		DayOfWeek,
+		DepDelay,
+		ArrDelay,
+		CarrierDelay,
+		WeatherDelay,
+		NASDelay,
+		SecurityDelay,
+		LateAircraftDelay,
+		Diverted, 
+		Cancelled FROM '2008.csv'
+	) AS f 
+	WHERE f.Cancelled = 0 
+	AND f.Diverted = 0 
+Group BY f.DayOfWeek
+) AS agg
+Order BY agg.DayOfWeek")
+print(ex)
+
+
+
+```
+
+avg delay vs positive delay: including definition: https://catsr.vse.gmu.edu/pubs/XuMultiFactorModelAirportDelaysTRBv6.pdf 
+
+
+
+
+Disconnect DB
+
+```{r}
+dbDisconnect(con)
+```
+
+
+References: https://www.aspm.faa.gov/aspmhelp/index/Types_of_Delay.html#NAS_Delay
