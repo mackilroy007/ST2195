@@ -292,7 +292,282 @@ print(positveDelays)
 
 ```
 
-Looking at the results from both queries, we can see that Saturday would be the statistically most optimal day to travel to avoid delays during the period of 2004-2008. Evaluating the second most optimal day however proves to be harder, as the average delay calculation differs from the results provided by looking at only positive delays, showing the existing realities present.
+Looking at the results, which I have decided to expose each average sum of delay type per day and the total from both queries, we can see that Saturday would be the statistically most optimal day to travel to avoid delays during the period of 2004-2008. Evaluating the second most optimal day however proves to be harder, as the average delay calculation differs from the results provided by looking at only positive delays, showing the existing realities present.
+
+
+Question B: 
+In the airline business the evaluation of age of an aircraft is not defined by years in service but rather flight hours and pressurization cycles. Unfortunately this data is logged in a planes logbook, which isn't available in the resource provided or publicly available. One could evaluate the flights hours flown within the given data time frame available, however lacking the previous years of data and crucial maintenance cycles administered to the aircraft, would make it very hard to judge if a given aircraft is reaching the end of its life cycle or not and if life extending measures or total overhaul measures have been taken place. 
+
+To answer this question, I will use an arbitrary definition of an old plane as being 20 plus years in service. Using the year date available in the plane-data.csv file and again differentiate between the average total and only positive delays that occurred with the aircraft between the period from 2004-2008, again excluding cancelled and diverted planes.
+```{r}
+avgDelaysPlaneAge <- dbGetQuery(con, "SELECT 
+	agg.plane_age_group,
+	agg.avg_depDelay,
+	agg.avg_arrDelay,
+	agg.avg_carrierDelay,
+	agg.avg_weatherDelay,
+	agg.avg_nasDelay,
+	agg.avg_securityDelay,
+	agg.avg_lateAircraftDelay,
+	(
+		agg.avg_depDelay +
+		agg.avg_arrDelay +
+		agg.avg_carrierDelay +
+		agg.avg_weatherDelay +
+		agg.avg_nasDelay +
+		agg.avg_securityDelay +
+		agg.avg_lateAircraftDelay 
+	) / 7 AS total_avg_delay
+FROM (
+SELECT 
+	CASE 
+		WHEN (f.Year - p.Year) < 20 
+		THEN 'newPlane'
+		ELSE 'oldPlane'
+	END AS plane_age_group,
+	AVG(f.DepDelay) AS avg_depDelay,
+	AVG(f.ArrDelay) AS avg_arrDelay,
+	AVG(f.CarrierDelay) AS avg_carrierDelay,
+	AVG(f.WeatherDelay) AS avg_weatherDelay,
+	AVG(f.NASDelay) AS avg_nasDelay,
+	AVG(f.SecurityDelay) AS avg_securityDelay,
+	AVG(f.LateAircraftDelay) AS avg_lateAircraftDelay
+FROM ( 
+	SELECT 
+		Year,
+		TailNum,
+		ArrDelay,
+		DepDelay,
+		CarrierDelay,
+		WeatherDelay,
+		NASDelay,
+		SecurityDelay,
+		LateAircraftDelay,
+		Diverted, 
+		Cancelled FROM '2004.csv'
+	UNION ALL 
+	SELECT
+		Year,
+		TailNum,
+		DepDelay,
+		ArrDelay,
+		CarrierDelay,
+		WeatherDelay,
+		NASDelay,
+		SecurityDelay,
+		LateAircraftDelay,
+		Diverted, 
+		Cancelled FROM '2005.csv'
+	UNION ALL 
+	SELECT
+		Year,
+		TailNum,
+		DepDelay,
+		ArrDelay,
+		CarrierDelay,
+		WeatherDelay,
+		NASDelay,
+		SecurityDelay,
+		LateAircraftDelay,
+		Diverted, 
+		Cancelled FROM '2006.csv'
+	UNION ALL 
+	SELECT
+		Year,
+		TailNum,
+		DepDelay,
+		ArrDelay,
+		CarrierDelay,
+		WeatherDelay,
+		NASDelay,
+		SecurityDelay,
+		LateAircraftDelay,
+		Diverted, 
+		Cancelled FROM '2007.csv'
+	UNION ALL 
+	SELECT
+		Year,
+		TailNum,
+		DepDelay,
+		ArrDelay,
+		CarrierDelay,
+		WeatherDelay,
+		NASDelay,
+		SecurityDelay,
+		LateAircraftDelay,
+		Diverted, 
+		Cancelled FROM '2008.csv'
+	) AS f
+	LEFT JOIN (
+		SELECT tailnum, Year
+		FROM 'plane-data'
+		) AS p 
+	ON f.TailNum = p.tailnum 
+	WHERE f.Cancelled = 0 
+	AND f.Diverted = 0 
+Group BY plane_age_group
+) AS agg
+Order BY agg.plane_age_group")
+print(avgDelaysPlaneAge)
+
+```
+
+
+
+```{r}
+postiveDelaysPlaneAge <- dbGetQuery(con, "SELECT 
+	agg.plane_age_group,
+	agg.avg_depDelay,
+	agg.avg_arrDelay,
+	agg.avg_carrierDelay,
+	agg.avg_weatherDelay,
+	agg.avg_nasDelay,
+	agg.avg_securityDelay,
+	agg.avg_lateAircraftDelay,
+	(
+		agg.avg_depDelay +
+		agg.avg_arrDelay +
+		agg.avg_carrierDelay +
+		agg.avg_weatherDelay +
+		agg.avg_nasDelay +
+		agg.avg_securityDelay +
+		agg.avg_lateAircraftDelay 
+	) / 7 AS total_avg_delay
+FROM (
+SELECT 
+	CASE 
+		WHEN (f.Year - p.Year) < 20 
+		THEN 'newPlane'
+		ELSE 'oldPlane'
+	END AS plane_age_group,
+	AVG(
+		CASE 
+			WHEN f.DepDelay > 0
+			THEN f.DepDelay
+			ELSE NULL
+		END
+		) AS avg_depDelay,
+	AVG(
+		CASE
+			WHEN f.ArrDelay > 0
+			THEN f.ArrDelay
+			ELSE NULL
+		END
+		) AS avg_arrDelay,
+	AVG(
+		CASE
+			WHEN f.CarrierDelay > 0
+			THEN f.CarrierDelay
+			ELSE NULL
+		END
+		) AS avg_carrierDelay,
+	AVG(
+		CASE
+			WHEN f.WeatherDelay > 0
+			THEN f.WeatherDelay
+			ELSE NULL
+		END
+		) AS avg_weatherDelay,
+	AVG(
+		CASE
+			WHEN f.NASDelay > 0
+			THEN f.NASDelay
+			ELSE NULL
+		END
+		) AS avg_nasDelay,
+	AVG(
+		CASE
+			WHEN f.SecurityDelay > 0
+			THEN f.SecurityDelay
+			ELSE NULL
+		END
+		) AS avg_securityDelay,
+	AVG(
+		CASE
+			WHEN f.LateAircraftDelay > 0
+			THEN f.LateAircraftDelay
+			ELSE NULL
+		END
+		) AS avg_lateAircraftDelay
+FROM ( 
+	SELECT 
+		Year,
+		TailNum,
+		ArrDelay,
+		DepDelay,
+		CarrierDelay,
+		WeatherDelay,
+		NASDelay,
+		SecurityDelay,
+		LateAircraftDelay,
+		Diverted, 
+		Cancelled FROM '2004.csv'
+	UNION ALL 
+	SELECT
+		Year,
+		TailNum,
+		DepDelay,
+		ArrDelay,
+		CarrierDelay,
+		WeatherDelay,
+		NASDelay,
+		SecurityDelay,
+		LateAircraftDelay,
+		Diverted, 
+		Cancelled FROM '2005.csv'
+	UNION ALL 
+	SELECT
+		Year,
+		TailNum,
+		DepDelay,
+		ArrDelay,
+		CarrierDelay,
+		WeatherDelay,
+		NASDelay,
+		SecurityDelay,
+		LateAircraftDelay,
+		Diverted, 
+		Cancelled FROM '2006.csv'
+	UNION ALL 
+	SELECT
+		Year,
+		TailNum,
+		DepDelay,
+		ArrDelay,
+		CarrierDelay,
+		WeatherDelay,
+		NASDelay,
+		SecurityDelay,
+		LateAircraftDelay,
+		Diverted, 
+		Cancelled FROM '2007.csv'
+	UNION ALL 
+	SELECT
+		Year,
+		TailNum,
+		DepDelay,
+		ArrDelay,
+		CarrierDelay,
+		WeatherDelay,
+		NASDelay,
+		SecurityDelay,
+		LateAircraftDelay,
+		Diverted, 
+		Cancelled FROM '2008.csv'
+	) AS f
+	LEFT JOIN (
+		SELECT tailnum, Year
+		FROM 'plane-data'
+		) AS p 
+	ON f.TailNum = p.tailnum 
+	WHERE f.Cancelled = 0 
+	AND f.Diverted = 0 
+Group BY plane_age_group
+) AS agg
+Order BY agg.plane_age_group")
+print(postiveDelaysPlaneAge)
+
+```
 
 
 
