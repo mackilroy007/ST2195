@@ -7,8 +7,8 @@ Setting up R packages
 ```{r}
 # install required packages only if missing
 packages <- c("DBI", "RSQLite")
-for (pkg in packages){
-  if(!requireNamespace(pkg, quietly = TRUE)){
+for (pkg in packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
     install.packages(pkg)
   }
 }
@@ -34,17 +34,17 @@ bz2_files <- list.files(folder, pattern = "\\.bz2$", full.names = TRUE)
 # import each file into the db of type .csv
 for (file in csv_files) {
   table_name <- tools::file_path_sans_ext(basename(file))
-message("Importing CSV: ", file)
-df <- read.csv(file)
-dbWriteTable(con, table_name, df, overwrite = TRUE)
+  message("Importing CSV: ", file)
+  df <- read.csv(file)
+  dbWriteTable(con, table_name, df, overwrite = TRUE)
 }
 
 # import each file into the db of type .bz2
 for (file in bz2_files) {
   table_name <- tools::file_path_sans_ext(basename(file))
-message("Importing BZ2: ", file)
-df <- read.csv(file)
-dbWriteTable(con, table_name, df, overwrite = TRUE)
+  message("Importing BZ2: ", file)
+  df <- read.csv(file)
+  dbWriteTable(con, table_name, df, overwrite = TRUE)
 }
 ```
 
@@ -54,7 +54,7 @@ Question a: What are the best times and days of the week to minimise delays each
 
 A solution to solve this would be to take the average delays, positive or negative (early), per time and day and return a value to return the given results. The data consists out of the following types of delays: arrival, departure, carrier (consists out of crew, maintenance, cleaning, baggage, ...), weather, national airspace system (eg ATC issues, ...), security and late aircraft delays. [@cite https://www.aspm.faa.gov/aspmhelp/index/Types_of_Delay.html#NAS_Delay] We will exclude any cancelled and diverted flights, as there cant be attributed any delays. We will query the database over the provided years 2004-8.The resulting findings, will reflect the typical evaluation used by the FAA and airlines to evaluate the average delays.
 ```{r}
-ex <- dbGetQuery(con, "SELECT 
+ex <- dbGetQuery(con, "SELECT
 	agg.avg_depDelay,
 	agg.avg_arrDelay,
 	agg.avg_carrierDelay,
@@ -69,10 +69,10 @@ ex <- dbGetQuery(con, "SELECT
 		agg.avg_weatherDelay +
 		agg.avg_nasDelay +
 		agg.avg_securityDelay +
-		agg.avg_lateAircraftDelay 
+		agg.avg_lateAircraftDelay
 	) / 7 AS total_avg_delay
 FROM (
-SELECT 
+SELECT
 	f.DayOfWeek,
 	AVG(f.DepDelay) AS avg_depDelay,
 	AVG(f.ArrDelay) AS avg_arrDelay,
@@ -81,8 +81,8 @@ SELECT
 	AVG(f.NASDelay) AS avg_nasDelay,
 	AVG(f.SecurityDelay) AS avg_securityDelay,
 	AVG(f.LateAircraftDelay) AS avg_lateAircraftDelay
-FROM ( 
-	SELECT 
+FROM (
+	SELECT
 		DayOfWeek,
 		DepDelay,
 		ArrDelay,
@@ -91,9 +91,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2004.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		DayOfWeek,
 		DepDelay,
@@ -103,9 +103,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2005.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		DayOfWeek,
 		DepDelay,
@@ -115,9 +115,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2006.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		DayOfWeek,
 		DepDelay,
@@ -127,9 +127,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2007.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		DayOfWeek,
 		DepDelay,
@@ -139,11 +139,11 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2008.csv'
-	) AS f 
-	WHERE f.Cancelled = 0 
-	AND f.Diverted = 0 
+	) AS f
+	WHERE f.Cancelled = 0
+	AND f.Diverted = 0
 Group BY f.DayOfWeek
 ) AS agg
 Order BY agg.DayOfWeek")
@@ -153,7 +153,7 @@ print(ex)
 If however we truly want to see the positive delays [@cite https://catsr.vse.gmu.edu/pubs/XuMultiFactorModelAirportDelaysTRBv6.pdf, p 3 Ch "Definition and previous research"], thus excluding any so called negative events such as early arrivals, departures, ..., thus eliminating any factors which may reduce the average times. As a result, we will get the real average delay times which occurs. This will truly reflect the times experienced by passengers on delays when they happen.
 
 ```{r}
-positveDelays <- dbGetQuery(con, "SELECT 
+positve_delays <- dbGetQuery(con, "SELECT
 	agg.avg_depDelay,
 	agg.avg_arrDelay,
 	agg.avg_carrierDelay,
@@ -168,13 +168,13 @@ positveDelays <- dbGetQuery(con, "SELECT
 		agg.avg_weatherDelay +
 		agg.avg_nasDelay +
 		agg.avg_securityDelay +
-		agg.avg_lateAircraftDelay 
+		agg.avg_lateAircraftDelay
 	) / 7 AS total_avg_delay
 FROM (
-SELECT 
+SELECT
 	f.DayOfWeek,
 	AVG(
-		CASE 
+		CASE
 			WHEN f.DepDelay > 0
 			THEN f.DepDelay
 			ELSE NULL
@@ -222,8 +222,8 @@ SELECT
 			ELSE NULL
 		END
 		) AS avg_lateAircraftDelay
-FROM ( 
-	SELECT 
+FROM (
+	SELECT
 		DayOfWeek,
 		DepDelay,
 		ArrDelay,
@@ -232,9 +232,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2004.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		DayOfWeek,
 		DepDelay,
@@ -244,9 +244,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2005.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		DayOfWeek,
 		DepDelay,
@@ -256,9 +256,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2006.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		DayOfWeek,
 		DepDelay,
@@ -268,9 +268,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2007.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		DayOfWeek,
 		DepDelay,
@@ -280,16 +280,15 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2008.csv'
-	) AS f 
-	WHERE f.Cancelled = 0 
-	AND f.Diverted = 0 
+	) AS f
+	WHERE f.Cancelled = 0
+	AND f.Diverted = 0
 Group BY f.DayOfWeek
 ) AS agg
 Order BY agg.DayOfWeek")
-print(positveDelays)
-
+print(positve_delays)
 ```
 
 Looking at the results, which I have decided to expose each average sum of delay type per day and the total from both queries, we can see that Saturday would be the statistically most optimal day to travel to avoid delays during the period of 2004-2008. Evaluating the second most optimal day however proves to be harder, as the average delay calculation differs from the results provided by looking at only positive delays, showing the existing realities present.
@@ -300,7 +299,7 @@ In the airline business the evaluation of age of an aircraft is not defined by y
 
 To answer this question, I will use an arbitrary definition of an old plane as being 20 plus years in service. Using the year date available in the plane-data.csv file and again differentiate between the average total and only positive delays that occurred with the aircraft between the period from 2004-2008, again excluding cancelled and diverted planes.
 ```{r}
-avgDelaysPlaneAge <- dbGetQuery(con, "SELECT 
+avg_delays_plane_age <- dbGetQuery(con, "SELECT
 	agg.plane_age_group,
 	agg.avg_depDelay,
 	agg.avg_arrDelay,
@@ -316,12 +315,12 @@ avgDelaysPlaneAge <- dbGetQuery(con, "SELECT
 		agg.avg_weatherDelay +
 		agg.avg_nasDelay +
 		agg.avg_securityDelay +
-		agg.avg_lateAircraftDelay 
+		agg.avg_lateAircraftDelay
 	) / 7 AS total_avg_delay
 FROM (
-SELECT 
-	CASE 
-		WHEN (f.Year - p.Year) < 20 
+SELECT
+	CASE
+		WHEN (f.Year - p.Year) < 20
 		THEN 'newPlane'
 		ELSE 'oldPlane'
 	END AS plane_age_group,
@@ -332,8 +331,8 @@ SELECT
 	AVG(f.NASDelay) AS avg_nasDelay,
 	AVG(f.SecurityDelay) AS avg_securityDelay,
 	AVG(f.LateAircraftDelay) AS avg_lateAircraftDelay
-FROM ( 
-	SELECT 
+FROM (
+	SELECT
 		Year,
 		TailNum,
 		ArrDelay,
@@ -343,9 +342,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2004.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		Year,
 		TailNum,
@@ -356,9 +355,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2005.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		Year,
 		TailNum,
@@ -369,9 +368,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2006.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		Year,
 		TailNum,
@@ -382,9 +381,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2007.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		Year,
 		TailNum,
@@ -395,27 +394,26 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2008.csv'
 	) AS f
 	LEFT JOIN (
 		SELECT tailnum, Year
 		FROM 'plane-data'
-		) AS p 
-	ON f.TailNum = p.tailnum 
-	WHERE f.Cancelled = 0 
-	AND f.Diverted = 0 
+		) AS p
+	ON f.TailNum = p.tailnum
+	WHERE f.Cancelled = 0
+	AND f.Diverted = 0
 Group BY plane_age_group
 ) AS agg
 Order BY agg.plane_age_group")
-print(avgDelaysPlaneAge)
-
+print(avg_delays_plane_age)
 ```
 
 
 
 ```{r}
-postiveDelaysPlaneAge <- dbGetQuery(con, "SELECT 
+postive_delays_plane_age <- dbGetQuery(con, "SELECT
 	agg.plane_age_group,
 	agg.avg_depDelay,
 	agg.avg_arrDelay,
@@ -431,17 +429,17 @@ postiveDelaysPlaneAge <- dbGetQuery(con, "SELECT
 		agg.avg_weatherDelay +
 		agg.avg_nasDelay +
 		agg.avg_securityDelay +
-		agg.avg_lateAircraftDelay 
+		agg.avg_lateAircraftDelay
 	) / 7 AS total_avg_delay
 FROM (
-SELECT 
-	CASE 
-		WHEN (f.Year - p.Year) < 20 
+SELECT
+	CASE
+		WHEN (f.Year - p.Year) < 20
 		THEN 'newPlane'
 		ELSE 'oldPlane'
 	END AS plane_age_group,
 	AVG(
-		CASE 
+		CASE
 			WHEN f.DepDelay > 0
 			THEN f.DepDelay
 			ELSE NULL
@@ -489,8 +487,8 @@ SELECT
 			ELSE NULL
 		END
 		) AS avg_lateAircraftDelay
-FROM ( 
-	SELECT 
+FROM (
+	SELECT
 		Year,
 		TailNum,
 		ArrDelay,
@@ -500,9 +498,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2004.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		Year,
 		TailNum,
@@ -513,9 +511,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2005.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		Year,
 		TailNum,
@@ -526,9 +524,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2006.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		Year,
 		TailNum,
@@ -539,9 +537,9 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2007.csv'
-	UNION ALL 
+	UNION ALL
 	SELECT
 		Year,
 		TailNum,
@@ -552,24 +550,163 @@ FROM (
 		NASDelay,
 		SecurityDelay,
 		LateAircraftDelay,
-		Diverted, 
+		Diverted,
 		Cancelled FROM '2008.csv'
 	) AS f
 	LEFT JOIN (
 		SELECT tailnum, Year
 		FROM 'plane-data'
-		) AS p 
-	ON f.TailNum = p.tailnum 
-	WHERE f.Cancelled = 0 
-	AND f.Diverted = 0 
+		) AS p
+	ON f.TailNum = p.tailnum
+	WHERE f.Cancelled = 0
+	AND f.Diverted = 0
 Group BY plane_age_group
 ) AS agg
 Order BY agg.plane_age_group")
-print(postiveDelaysPlaneAge)
-
+print(postive_delays_plane_age)
 ```
 
+Looking at the final output, we can extrapolate that the so called "older planes" are slightly less delayed than the "newer" counterparts.
 
+
+
+Q C
+```{r}
+# loading packages for regression model
+required_packages <- c("DBI", "RSQLite", "dplyr", "magrittr", "rlang", "ggplot2", "broom", "tidyr", "tidyselect", "vctrs", "pillar", "tibble", "cli", "lifecycle", "generics")
+for (pkg in required_packages) {
+  # install only if missing
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg)
+    library(pkg, character.only = TRUE)
+  }
+}
+
+# Load 2004 flight data
+flights_2004 <- dbReadTable(con, "2004.csv")
+
+# Load look up tables & minimized
+carriers <- dbReadTable(con, "carriers") 
+carriers_min <- carriers %>%
+  select(Code, Description)
+airports <- dbReadTable(con, "airports") 
+airports_min <- airports %>%
+  select(iata, airport, lat, long)
+
+# join carrier name & airport co-ord
+flights_joined <- flights_2004 %>%
+  left_join(carriers_min, by = c("UniqueCarrier" = "Code")) %>%
+  rename(CarrierName = Description) %>%
+  left_join(airports_min, by = c("Origin" = "iata")) %>%
+  rename(
+    OriginAirport = airport,
+    OriginLat = lat,
+    OriginLong = long
+  ) %>%
+  left_join(airports_min, by = c("Dest" = "iata")) %>%
+  rename(
+    DestAirport = airport,
+    DestLat = lat,
+    DestLong = long
+  )
+
+# fix month lables before modeling
+flights_joined$Month <- factor(
+	flights_joined$Month,
+	levels = 1:12,
+	labels = month.name
+)
+
+# feature engineering
+process_time <- function(x) ifelse(is.na(x), NA, floor(x/100))
+model_data <- flights_joined %>%
+  filter(Cancelled == 0) %>% # keep diverted flights
+  mutate(
+    CRSDepHour = process_time(CRSDepTime),
+    CRSArrHour = process_time(CRSArrTime),
+    DayOfWeek = as.factor(DayOfWeek),
+    CarrierName = as.factor(CarrierName),
+    Diverted = as.factor(Diverted)
+  ) %>%
+  select(
+    Diverted,
+    Month,
+    DayOfWeek,
+    CRSDepHour,
+    CRSArrHour,
+    CarrierName,
+    Distance,
+    OriginLat,
+    OriginLong,
+    DestLat,
+    DestLong
+  ) %>%
+  na.omit()
+
+# Logistical regression
+model_2004 <- glm(
+  Diverted ~ Month + DayOfWeek +
+    CRSDepHour + CRSArrHour +
+    CarrierName + Distance +
+    OriginLat + OriginLong +
+    DestLat + DestLong,
+  data = model_data,
+  family = binomial()
+)
+
+# visualize coefficients
+coef_df <- tidy(model_2004)
+
+# Remove intercept
+coef_df <- coef_df[coef_df$term != "(Intercept)", ]
+
+# parse variable
+coef_df$variable <- sub("([A-Za-z]+).*", "\\1", coef_df$term)
+coef_df$level <- sub("[A-Za-z]+", "", coef_df$term)
+coef_df$level <- trimws(coef_df$level)
+
+# clean labels
+coef_df$label <- ifelse(
+	coef_df$level == "",
+	coef_df$variable,
+	paste0(coef_df$variable, ": ", coef_df$level)
+)
+
+# Order Months and use names
+month_labels <- paste0("Month: ", month.name)
+coef_df$label <- factor(
+	coef_df$label,
+	levels = c(
+		month_labels,
+		setdiff(unique(coef_df$label), month_labels)
+	)
+)
+
+# Group coordinate together
+coord_labels <- c("OriginLat", "OriginLong", "DestLat", "DestLong")
+coef_df$label <- factor(
+	coef_df$label,
+	levels = c(
+		setdiff(levels(coef_df$label), coord_labels),
+		coord_labels
+	)
+)
+
+# Plot the points on the graph
+ggplot(coef_df, aes(x = label, y = estimate)) +
+  geom_point() +
+  coord_flip() +
+  labs(
+    title = "Logistic Regression Coefficients for Diverted Flights (2004)",
+    x = "Feature",
+    y = "Coefficient"
+  ) +
+  theme_bw() +
+  theme(
+	axis.text.y = element_text(size = 7)
+  )
+
+```
 
 
 Disconnect DB
