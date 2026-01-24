@@ -624,7 +624,7 @@ model_data <- flights_joined %>%
   mutate(
     CRSDepHour = process_time(CRSDepTime),
     CRSArrHour = process_time(CRSArrTime),
-    DayOfWeek = as.factor(DayOfWeek),
+    DayOfWeek = factor(DayOfWeek, levels = 1:7),
     CarrierName = as.factor(CarrierName),
     Diverted = as.factor(Diverted)
   ) %>%
@@ -636,6 +636,7 @@ model_data <- flights_joined %>%
     CRSArrHour,
     CarrierName,
     Distance,
+    #WeatherDelay,
     OriginLat,
     OriginLong,
     DestLat,
@@ -643,11 +644,12 @@ model_data <- flights_joined %>%
   ) %>%
   na.omit()
 
-# Logistical regression
+# Logistical regression using 0 as baseline
 model_2004 <- glm(
-  Diverted ~ Month + DayOfWeek +
+  Diverted ~ 0 + Month + DayOfWeek +
     CRSDepHour + CRSArrHour +
-    CarrierName + Distance +
+    CarrierName + Distance + 
+	#WeatherDelay +
     OriginLat + OriginLong +
     DestLat + DestLong,
   data = model_data,
@@ -661,9 +663,18 @@ coef_df <- tidy(model_2004)
 coef_df <- coef_df[coef_df$term != "(Intercept)", ]
 
 # parse variable
-coef_df$variable <- sub("([A-Za-z]+).*", "\\1", coef_df$term)
-coef_df$level <- sub("[A-Za-z]+", "", coef_df$term)
+coef_df$variable <- sub("^(Month|DayOfWeek|CarrierName|CRSDepHour|CRSArrHour|OriginLong|OriginLat|DestLong|DestLat).*", "\\1", coef_df$term)
+coef_df$level <- sub("^(Month|DayOfWeek|CarrierName|CRSDepHour|CRSArrHour|OriginLong|OriginLat|DestLong|DestLat)", "", coef_df$term)
 coef_df$level <- trimws(coef_df$level)
+
+# convert DayOfWeek number to day names
+day_names <- c("Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun")
+print(coef_df[coef_df$variable == "DayOfWeek", c("term", "variable", "level")])
+coef_df$level <- ifelse(
+	coef_df$variable == "DayOfWeek" & coef_df$level %in% as.character(1:7),
+	day_names[as.numeric(coef_df$level)],
+	coef_df$level
+)
 
 # clean labels
 coef_df$label <- ifelse(
