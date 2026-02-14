@@ -650,11 +650,16 @@ model_data <- flights_joined %>%
   ) %>%
   na.omit()
 
+# create model dummy data
+mm_month <- model.matrix(~ 0 + Month, data = model_data)
+mm_day <- model.matrix(~ 0 + DayOfWeek, data = model_data)
+mm_carrier <- model.matrix(~ 0 + CarrierName, data = model_data)
+
 # Logistical regression using 0 as baseline
 model_2004 <- glm(
-  Diverted ~ 0 + Month + DayOfWeek +
-    CRSDepHour + CRSArrHour +
-    CarrierName + Distance + 
+  Diverted ~ 0 + mm_month + mm_day +
+    mm_carrier + CRSDepHour + CRSArrHour +
+    Distance + 
 	#WeatherDelay +
     OriginLat + OriginLong +
     DestLat + DestLong,
@@ -667,6 +672,10 @@ coef_df <- tidy(model_2004)
 
 # Remove intercept
 coef_df <- coef_df[coef_df$term != "(Intercept)", ]
+# Remove mm_ dummy variable prefix
+coef_df$term <- gsub("^mm_month", "", coef_df$term)
+coef_df$term <- gsub("^mm_day", "", coef_df$term)
+coef_df$term <- gsub("^mm_carrier", "", coef_df$term)
 
 # parse variable
 coef_df$variable <- sub("^(Month|DayOfWeek|CarrierName|CRSDepHour|CRSArrHour|OriginLong|OriginLat|DestLong|DestLat).*", "\\1", coef_df$term)
