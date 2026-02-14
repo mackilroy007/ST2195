@@ -610,6 +610,13 @@ flights_joined <- flights_2004 %>%
     DestLong = long
   )
 
+# fix DayOfWeek number to day names before modeling
+flights_joined$DayOfWeek <- factor(
+	flights_joined$DayOfWeek,
+	levels = 1:7,
+	labels = c("Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun")
+)
+
 # fix month lables before modeling
 flights_joined$Month <- factor(
 	flights_joined$Month,
@@ -624,7 +631,6 @@ model_data <- flights_joined %>%
   mutate(
     CRSDepHour = process_time(CRSDepTime),
     CRSArrHour = process_time(CRSArrTime),
-    DayOfWeek = factor(DayOfWeek, levels = 1:7),
     CarrierName = as.factor(CarrierName),
     Diverted = as.factor(Diverted)
   ) %>%
@@ -667,15 +673,6 @@ coef_df$variable <- sub("^(Month|DayOfWeek|CarrierName|CRSDepHour|CRSArrHour|Ori
 coef_df$level <- sub("^(Month|DayOfWeek|CarrierName|CRSDepHour|CRSArrHour|OriginLong|OriginLat|DestLong|DestLat)", "", coef_df$term)
 coef_df$level <- trimws(coef_df$level)
 
-# convert DayOfWeek number to day names
-day_names <- c("Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun")
-print(coef_df[coef_df$variable == "DayOfWeek", c("term", "variable", "level")])
-coef_df$level <- ifelse(
-	coef_df$variable == "DayOfWeek" & coef_df$level %in% as.character(1:7),
-	day_names[as.numeric(coef_df$level)],
-	coef_df$level
-)
-
 # clean labels
 coef_df$label <- ifelse(
 	coef_df$level == "",
@@ -690,6 +687,16 @@ coef_df$label <- factor(
 	levels = c(
 		month_labels,
 		setdiff(unique(coef_df$label), month_labels)
+	)
+)
+
+#  Order day of week
+day_labels <- paste0("DayOfWeek: ", c("Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun"))
+coef_df$label <- factor(
+	coef_df$label,
+	levels = c(
+		day_labels,
+		setdiff(levels(coef_df$label), day_labels)
 	)
 )
 
