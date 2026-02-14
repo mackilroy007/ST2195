@@ -573,7 +573,7 @@ Looking at the final output, we can extrapolate that the so called "older planes
 Q C
 ```{r}
 # loading packages for regression model
-required_packages <- c("DBI", "RSQLite", "dplyr", "magrittr", "rlang", "ggplot2", "broom", "tidyr", "tidyselect", "vctrs", "pillar", "tibble", "cli", "lifecycle", "generics")
+required_packages <- c("DBI", "RSQLite", "dplyr", "dbplyr", "magrittr", "rlang", "ggplot2", "broom", "tidyr", "tidyselect", "vctrs", "pillar", "tibble", "cli", "lifecycle", "generics")
 for (pkg in required_packages) {
   # install only if missing
   if (!requireNamespace(pkg, quietly = TRUE)) {
@@ -582,8 +582,29 @@ for (pkg in required_packages) {
   }
 }
 
-# Load 2004 flight data
-flights_2004 <- dbReadTable(con, "2004.csv")
+# Load 2004-2008 flight data with sampling size of 10%
+years <- 2004:2008
+flights_list <- list()
+for (year in years){
+	table_name <- paste0(year, ".csv")
+
+	flights_tmp <- tbl(con, table_name) %>%
+	filter(Cancelled == 0) %>%
+	# select("UniqueCarrier, Origin, Dest, Month, DayOfWeek, CRSDepTime, CRSArrTime, Diverted, Distance, Cancelled, WeatherDelay") %>%
+	collect()
+
+	# Sample to reduce size (10% of each year)
+	set.seed(123) # for reproducability
+	flights_list[[as.character(year)]] <- flights_tmp %>%
+	sample_frac(0.10)
+
+	# Clean up temp data
+	rm(flights_tmp)
+	gc() #free memory
+}
+
+# join all years
+flights_all <- bind_rows(flights_list)
 
 # Load look up tables & minimized
 carriers <- dbReadTable(con, "carriers") 
@@ -594,7 +615,7 @@ airports_min <- airports %>%
   select(iata, airport, lat, long)
 
 # join carrier name & airport co-ord
-flights_joined <- flights_2004 %>%
+flights_joined <- flights_all %>%
   left_join(carriers_min, by = c("UniqueCarrier" = "Code")) %>%
   rename(CarrierName = Description) %>%
   left_join(airports_min, by = c("Origin" = "iata")) %>%
@@ -642,7 +663,7 @@ model_data <- flights_joined %>%
     CRSArrHour,
     CarrierName,
     Distance,
-    #WeatherDelay,
+    WeatherDelay,
     OriginLat,
     OriginLong,
     DestLat,
@@ -656,11 +677,11 @@ mm_day <- model.matrix(~ 0 + DayOfWeek, data = model_data)
 mm_carrier <- model.matrix(~ 0 + CarrierName, data = model_data)
 
 # Logistical regression using 0 as baseline
-model_2004 <- glm(
+model_2004_2008 <- glm(
   Diverted ~ 0 + mm_month + mm_day +
     mm_carrier + CRSDepHour + CRSArrHour +
     Distance + 
-	#WeatherDelay +
+	WeatherDelay +
     OriginLat + OriginLong +
     DestLat + DestLong,
   data = model_data,
@@ -668,7 +689,7 @@ model_2004 <- glm(
 )
 
 # visualize coefficients
-coef_df <- tidy(model_2004)
+coef_df <- tidy(model_2004_2008)
 
 # Remove intercept
 coef_df <- coef_df[coef_df$term != "(Intercept)", ]
@@ -724,7 +745,7 @@ ggplot(coef_df, aes(x = label, y = estimate)) +
   geom_point() +
   coord_flip() +
   labs(
-    title = "Logistic Regression Coefficients for Diverted Flights (2004)",
+    title = "Logistic Regression Coefficients for Diverted Flights (2004-2008) using 10% sampling size",
     x = "Feature",
     y = "Coefficient"
   ) +
