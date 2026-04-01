@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 
 # ok so we need N=10000 and s=1 for the metropolis thing
-x0 = 0.0  # starting point i guess
+x0 = 0.0  # starting point
 N = 10000  # number of samples
 s = 1.0  # step size or whatever
 
