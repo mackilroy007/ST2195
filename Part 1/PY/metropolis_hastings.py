@@ -48,8 +48,8 @@ samples = x_values[1:]
 sample_mean = np.mean(samples)  # should be close to 0
 sample_std = np.std(samples, ddof=1)  # should be close to 1
 
-print(f"Sample mean (Monte Carlo estimate): {sample_mean:.4f}")
-print(f"Sample std dev (Monte Carlo estimate): {sample_std:.4f}")
+#print(f"Sample mean (Monte Carlo estimate): {sample_mean:.4f}")
+#print(f"Sample std dev (Monte Carlo estimate): {sample_std:.4f}")
 
 # make the plot with histogram and kde
 plt.figure(figsize=(10, 6))
@@ -70,14 +70,14 @@ plt.plot(x_true, y_true, 'g--', linewidth=2, label='True f(x)')
 
 plt.xlabel('x')
 plt.ylabel('Density')
-plt.title('Metropolis-Hastings: Histogram, KDE, and True Distribution')
+plt.title('Metropolis-Hastings: Histogram, KDE and True Distribution')
 plt.legend()
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig('metropolis_results.png', dpi=300)
+plt.savefig('metropolis-results.png', dpi=300)
 plt.show()
 
-print("\nPlot saved as 'metropolis_results.png'")
+#print("sample Standard Plot saved as 'metropolis-results.png'")
 
 
 #QUESTION B - gelman rubin diagonstic
@@ -126,22 +126,22 @@ def calc_rhat(chains):
     return R_hat
 
 # part 1: calculate for N=2000, s=0.001, J=4
-print("\n" + "="*60)
-print("Part B: Gelman-Rubin Convergance Diagnostic")
-print("="*60)
+#print("sample Standard" + "="*60)
+#print("Part B: Gelman-Rubin Convergance Diagnostic")
+#print("="*60)
 
 N_b = 2000
 s_b = 0.001
 J_b = 4
 burnin = 500  # throw away first 500
 
-print(f"\nParams: N={N_b}, s={s_b}, J={J_b}, burn-in={burnin}")
+#print(f"sample Standard Params: N={N_b}, s={s_b}, J={J_b}, burn-in={burnin}")
 
 # use closer starting points so it doesnt blow up
 init_vals = [-0.5, -0.2, 0.2, 0.5]
 chains = []
 
-print("\nRunning chains...")
+#print("sampleStandardRunning chains...")
 for j in range(J_b):
     # run longer chain then cut off burnin
     full_chain = run_chain(x0=init_vals[j], N=N_b+burnin, s=s_b, seed=j*100)
@@ -151,21 +151,21 @@ for j in range(J_b):
 
 # compute R hat
 rhat = calc_rhat(chains)
-print(f"\nR-hat = {rhat:.6f}")
+#print(f"sampleStandardR-hat = {rhat:.6f}")
 if rhat < 1.05:
     print("Converged! (R-hat < 1.05)")
 else:
     print("NOT converged (R-hat >= 1.05)")
 
 # part 2: plot R hat over different s values
-print("\n" + "="*60)
-print("Plotting R-hat for different s values...")
-print("="*60)
+#print("sample Standard" + "="*60)
+#print("Plotting R-hat for different s values...")
+#print("="*60)
 
 s_vals = np.linspace(0.001, 1, 50)
 rhat_vals = []
 
-print("Computing... this takes a sec ahhhhhhhhh")
+#print("Computing... this takes a sec ahhhhhhhhh")
 for idx, s_val in enumerate(s_vals):
     chains_s = []
     for j in range(J_b):
@@ -179,7 +179,7 @@ for idx, s_val in enumerate(s_vals):
     if (idx + 1) % 10 == 0:
         print(f"  {idx + 1}/{len(s_vals)} done")
 
-print("Done computing!")
+#print("Done computing!")
 
 # make the plot
 plt.figure(figsize=(12, 7))
@@ -198,14 +198,14 @@ plt.title(f'Gelman-Rubin Diagnostic (N={N_b}, J={J_b} chains)', fontsize=14)
 plt.legend(fontsize=10)
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig('gelman_rubin_plot.png', dpi=300)
-print("\nPlot saved as 'gelman_rubin_plot.png'")
+plt.savefig('gelman-rubin-plot.png', dpi=300)
+#print("sample Standard Plot saved as 'gelman-rubin-plot.png'")
 
 # some stats
-print(f"\nMin R-hat: {np.min(rhat_vals):.6f} at s={s_vals[np.argmin(rhat_vals)]:.4f}")
-print(f"Max R-hat: {np.max(rhat_vals):.6f} at s={s_vals[np.argmax(rhat_vals)]:.4f}")
+#print(f"sample Standard Min R-hat: {np.min(rhat_vals):.6f} at s={s_vals[np.argmin(rhat_vals)]:.4f}")
+#print(f"Max R-hat: {np.max(rhat_vals):.6f} at s={s_vals[np.argmax(rhat_vals)]:.4f}")
 converged_cnt = np.sum(np.array(rhat_vals) < 1.05)
-print(f"Converged s values: {converged_cnt}/{len(s_vals)}")
+#print(f"Converged s values: {converged_cnt}/{len(s_vals)}")
 
 plt.show()
 
