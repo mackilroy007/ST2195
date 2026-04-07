@@ -55,95 +55,95 @@ Question a: What are the best times and days of the week to minimise delays each
 A solution to solve this would be to take the average delays, positive or negative (early), per time and day and return a value to return the given results. The data consists out of the following types of delays: arrival, departure, carrier (consists out of crew, maintenance, cleaning, baggage, ...), weather, national airspace system (eg ATC issues, ...), security and late aircraft delays. [@cite https://www.aspm.faa.gov/aspmhelp/index/Types_of_Delay.html#NAS_Delay] We will exclude any cancelled and diverted flights, as there cant be attributed any delays. We will query the database over the provided years 2004-8.The resulting findings, will reflect the typical evaluation used by the FAA and airlines to evaluate the average delays.
 ```{r}
 ex <- dbGetQuery(con, "SELECT
-	agg.avg_depDelay,
-	agg.avg_arrDelay,
-	agg.avg_carrierDelay,
-	agg.avg_weatherDelay,
-	agg.avg_nasDelay,
-	agg.avg_securityDelay,
-	agg.avg_lateAircraftDelay,
-	(
-		agg.avg_depDelay +
-		agg.avg_arrDelay +
-		agg.avg_carrierDelay +
-		agg.avg_weatherDelay +
-		agg.avg_nasDelay +
-		agg.avg_securityDelay +
-		agg.avg_lateAircraftDelay
-	) / 7 AS total_avg_delay
+    agg.avg_depDelay,
+    agg.avg_arrDelay,
+    agg.avg_carrierDelay,
+    agg.avg_weatherDelay,
+    agg.avg_nasDelay,
+    agg.avg_securityDelay,
+    agg.avg_lateAircraftDelay,
+    (
+        agg.avg_depDelay +
+        agg.avg_arrDelay +
+        agg.avg_carrierDelay +
+        agg.avg_weatherDelay +
+        agg.avg_nasDelay +
+        agg.avg_securityDelay +
+        agg.avg_lateAircraftDelay
+    ) / 7 AS total_avg_delay
 FROM (
 SELECT
-	f.DayOfWeek,
-	AVG(f.DepDelay) AS avg_depDelay,
-	AVG(f.ArrDelay) AS avg_arrDelay,
-	AVG(f.CarrierDelay) AS avg_carrierDelay,
-	AVG(f.WeatherDelay) AS avg_weatherDelay,
-	AVG(f.NASDelay) AS avg_nasDelay,
-	AVG(f.SecurityDelay) AS avg_securityDelay,
-	AVG(f.LateAircraftDelay) AS avg_lateAircraftDelay
+    f.DayOfWeek,
+    AVG(f.DepDelay) AS avg_depDelay,
+    AVG(f.ArrDelay) AS avg_arrDelay,
+    AVG(f.CarrierDelay) AS avg_carrierDelay,
+    AVG(f.WeatherDelay) AS avg_weatherDelay,
+    AVG(f.NASDelay) AS avg_nasDelay,
+    AVG(f.SecurityDelay) AS avg_securityDelay,
+    AVG(f.LateAircraftDelay) AS avg_lateAircraftDelay
 FROM (
-	SELECT
-		DayOfWeek,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2004.csv'
-	UNION ALL
-	SELECT
-		DayOfWeek,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2005.csv'
-	UNION ALL
-	SELECT
-		DayOfWeek,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2006.csv'
-	UNION ALL
-	SELECT
-		DayOfWeek,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2007.csv'
-	UNION ALL
-	SELECT
-		DayOfWeek,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2008.csv'
-	) AS f
-	WHERE f.Cancelled = 0
-	AND f.Diverted = 0
+    SELECT
+        DayOfWeek,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2004.csv'
+    UNION ALL
+    SELECT
+        DayOfWeek,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2005.csv'
+    UNION ALL
+    SELECT
+        DayOfWeek,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2006.csv'
+    UNION ALL
+    SELECT
+        DayOfWeek,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2007.csv'
+    UNION ALL
+    SELECT
+        DayOfWeek,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2008.csv'
+    ) AS f
+    WHERE f.Cancelled = 0
+    AND f.Diverted = 0
 Group BY f.DayOfWeek
 ) AS agg
 Order BY agg.DayOfWeek")
@@ -154,137 +154,137 @@ If however we truly want to see the positive delays [@cite https://catsr.vse.gmu
 
 ```{r}
 positve_delays <- dbGetQuery(con, "SELECT
-	agg.avg_depDelay,
-	agg.avg_arrDelay,
-	agg.avg_carrierDelay,
-	agg.avg_weatherDelay,
-	agg.avg_nasDelay,
-	agg.avg_securityDelay,
-	agg.avg_lateAircraftDelay,
-	(
-		agg.avg_depDelay +
-		agg.avg_arrDelay +
-		agg.avg_carrierDelay +
-		agg.avg_weatherDelay +
-		agg.avg_nasDelay +
-		agg.avg_securityDelay +
-		agg.avg_lateAircraftDelay
-	) / 7 AS total_avg_delay
+    agg.avg_depDelay,
+    agg.avg_arrDelay,
+    agg.avg_carrierDelay,
+    agg.avg_weatherDelay,
+    agg.avg_nasDelay,
+    agg.avg_securityDelay,
+    agg.avg_lateAircraftDelay,
+    (
+        agg.avg_depDelay +
+        agg.avg_arrDelay +
+        agg.avg_carrierDelay +
+        agg.avg_weatherDelay +
+        agg.avg_nasDelay +
+        agg.avg_securityDelay +
+        agg.avg_lateAircraftDelay
+    ) / 7 AS total_avg_delay
 FROM (
 SELECT
-	f.DayOfWeek,
-	AVG(
-		CASE
-			WHEN f.DepDelay > 0
-			THEN f.DepDelay
-			ELSE NULL
-		END
-		) AS avg_depDelay,
-	AVG(
-		CASE
-			WHEN f.ArrDelay > 0
-			THEN f.ArrDelay
-			ELSE NULL
-		END
-		) AS avg_arrDelay,
-	AVG(
-		CASE
-			WHEN f.CarrierDelay > 0
-			THEN f.CarrierDelay
-			ELSE NULL
-		END
-		) AS avg_carrierDelay,
-	AVG(
-		CASE
-			WHEN f.WeatherDelay > 0
-			THEN f.WeatherDelay
-			ELSE NULL
-		END
-		) AS avg_weatherDelay,
-	AVG(
-		CASE
-			WHEN f.NASDelay > 0
-			THEN f.NASDelay
-			ELSE NULL
-		END
-		) AS avg_nasDelay,
-	AVG(
-		CASE
-			WHEN f.SecurityDelay > 0
-			THEN f.SecurityDelay
-			ELSE NULL
-		END
-		) AS avg_securityDelay,
-	AVG(
-		CASE
-			WHEN f.LateAircraftDelay > 0
-			THEN f.LateAircraftDelay
-			ELSE NULL
-		END
-		) AS avg_lateAircraftDelay
+    f.DayOfWeek,
+    AVG(
+        CASE
+            WHEN f.DepDelay > 0
+            THEN f.DepDelay
+            ELSE NULL
+        END
+        ) AS avg_depDelay,
+    AVG(
+        CASE
+            WHEN f.ArrDelay > 0
+            THEN f.ArrDelay
+            ELSE NULL
+        END
+        ) AS avg_arrDelay,
+    AVG(
+        CASE
+            WHEN f.CarrierDelay > 0
+            THEN f.CarrierDelay
+            ELSE NULL
+        END
+        ) AS avg_carrierDelay,
+    AVG(
+        CASE
+            WHEN f.WeatherDelay > 0
+            THEN f.WeatherDelay
+            ELSE NULL
+        END
+        ) AS avg_weatherDelay,
+    AVG(
+        CASE
+            WHEN f.NASDelay > 0
+            THEN f.NASDelay
+            ELSE NULL
+        END
+        ) AS avg_nasDelay,
+    AVG(
+        CASE
+            WHEN f.SecurityDelay > 0
+            THEN f.SecurityDelay
+            ELSE NULL
+        END
+        ) AS avg_securityDelay,
+    AVG(
+        CASE
+            WHEN f.LateAircraftDelay > 0
+            THEN f.LateAircraftDelay
+            ELSE NULL
+        END
+        ) AS avg_lateAircraftDelay
 FROM (
-	SELECT
-		DayOfWeek,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2004.csv'
-	UNION ALL
-	SELECT
-		DayOfWeek,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2005.csv'
-	UNION ALL
-	SELECT
-		DayOfWeek,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2006.csv'
-	UNION ALL
-	SELECT
-		DayOfWeek,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2007.csv'
-	UNION ALL
-	SELECT
-		DayOfWeek,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2008.csv'
-	) AS f
-	WHERE f.Cancelled = 0
-	AND f.Diverted = 0
+    SELECT
+        DayOfWeek,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2004.csv'
+    UNION ALL
+    SELECT
+        DayOfWeek,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2005.csv'
+    UNION ALL
+    SELECT
+        DayOfWeek,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2006.csv'
+    UNION ALL
+    SELECT
+        DayOfWeek,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2007.csv'
+    UNION ALL
+    SELECT
+        DayOfWeek,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2008.csv'
+    ) AS f
+    WHERE f.Cancelled = 0
+    AND f.Diverted = 0
 Group BY f.DayOfWeek
 ) AS agg
 Order BY agg.DayOfWeek")
@@ -300,110 +300,110 @@ In the airline business the evaluation of age of an aircraft is not defined by y
 To answer this question, I will use an arbitrary definition of an old plane as being 20 plus years in service. Using the year date available in the plane-data.csv file and again differentiate between the average total and only positive delays that occurred with the aircraft between the period from 2004-2008, again excluding cancelled and diverted planes.
 ```{r}
 avg_delays_plane_age <- dbGetQuery(con, "SELECT
-	agg.plane_age_group,
-	agg.avg_depDelay,
-	agg.avg_arrDelay,
-	agg.avg_carrierDelay,
-	agg.avg_weatherDelay,
-	agg.avg_nasDelay,
-	agg.avg_securityDelay,
-	agg.avg_lateAircraftDelay,
-	(
-		agg.avg_depDelay +
-		agg.avg_arrDelay +
-		agg.avg_carrierDelay +
-		agg.avg_weatherDelay +
-		agg.avg_nasDelay +
-		agg.avg_securityDelay +
-		agg.avg_lateAircraftDelay
-	) / 7 AS total_avg_delay
+    agg.plane_age_group,
+    agg.avg_depDelay,
+    agg.avg_arrDelay,
+    agg.avg_carrierDelay,
+    agg.avg_weatherDelay,
+    agg.avg_nasDelay,
+    agg.avg_securityDelay,
+    agg.avg_lateAircraftDelay,
+    (
+        agg.avg_depDelay +
+        agg.avg_arrDelay +
+        agg.avg_carrierDelay +
+        agg.avg_weatherDelay +
+        agg.avg_nasDelay +
+        agg.avg_securityDelay +
+        agg.avg_lateAircraftDelay
+    ) / 7 AS total_avg_delay
 FROM (
 SELECT
-	CASE
-		WHEN (f.Year - p.Year) < 20
-		THEN 'newPlane'
-		ELSE 'oldPlane'
-	END AS plane_age_group,
-	AVG(f.DepDelay) AS avg_depDelay,
-	AVG(f.ArrDelay) AS avg_arrDelay,
-	AVG(f.CarrierDelay) AS avg_carrierDelay,
-	AVG(f.WeatherDelay) AS avg_weatherDelay,
-	AVG(f.NASDelay) AS avg_nasDelay,
-	AVG(f.SecurityDelay) AS avg_securityDelay,
-	AVG(f.LateAircraftDelay) AS avg_lateAircraftDelay
+    CASE
+        WHEN (f.Year - p.Year) < 20
+        THEN 'newPlane'
+        ELSE 'oldPlane'
+    END AS plane_age_group,
+    AVG(f.DepDelay) AS avg_depDelay,
+    AVG(f.ArrDelay) AS avg_arrDelay,
+    AVG(f.CarrierDelay) AS avg_carrierDelay,
+    AVG(f.WeatherDelay) AS avg_weatherDelay,
+    AVG(f.NASDelay) AS avg_nasDelay,
+    AVG(f.SecurityDelay) AS avg_securityDelay,
+    AVG(f.LateAircraftDelay) AS avg_lateAircraftDelay
 FROM (
-	SELECT
-		Year,
-		TailNum,
-		ArrDelay,
-		DepDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2004.csv'
-	UNION ALL
-	SELECT
-		Year,
-		TailNum,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2005.csv'
-	UNION ALL
-	SELECT
-		Year,
-		TailNum,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2006.csv'
-	UNION ALL
-	SELECT
-		Year,
-		TailNum,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2007.csv'
-	UNION ALL
-	SELECT
-		Year,
-		TailNum,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2008.csv'
-	) AS f
-	LEFT JOIN (
-		SELECT tailnum, Year
-		FROM 'plane-data'
-		) AS p
-	ON f.TailNum = p.tailnum
-	WHERE f.Cancelled = 0
-	AND f.Diverted = 0
+    SELECT
+        Year,
+        TailNum,
+        ArrDelay,
+        DepDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2004.csv'
+    UNION ALL
+    SELECT
+        Year,
+        TailNum,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2005.csv'
+    UNION ALL
+    SELECT
+        Year,
+        TailNum,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2006.csv'
+    UNION ALL
+    SELECT
+        Year,
+        TailNum,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2007.csv'
+    UNION ALL
+    SELECT
+        Year,
+        TailNum,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2008.csv'
+    ) AS f
+    LEFT JOIN (
+        SELECT tailnum, Year
+        FROM 'plane-data'
+        ) AS p
+    ON f.TailNum = p.tailnum
+    WHERE f.Cancelled = 0
+    AND f.Diverted = 0
 Group BY plane_age_group
 ) AS agg
 Order BY agg.plane_age_group")
@@ -414,152 +414,152 @@ print(avg_delays_plane_age)
 
 ```{r}
 postive_delays_plane_age <- dbGetQuery(con, "SELECT
-	agg.plane_age_group,
-	agg.avg_depDelay,
-	agg.avg_arrDelay,
-	agg.avg_carrierDelay,
-	agg.avg_weatherDelay,
-	agg.avg_nasDelay,
-	agg.avg_securityDelay,
-	agg.avg_lateAircraftDelay,
-	(
-		agg.avg_depDelay +
-		agg.avg_arrDelay +
-		agg.avg_carrierDelay +
-		agg.avg_weatherDelay +
-		agg.avg_nasDelay +
-		agg.avg_securityDelay +
-		agg.avg_lateAircraftDelay
-	) / 7 AS total_avg_delay
+    agg.plane_age_group,
+    agg.avg_depDelay,
+    agg.avg_arrDelay,
+    agg.avg_carrierDelay,
+    agg.avg_weatherDelay,
+    agg.avg_nasDelay,
+    agg.avg_securityDelay,
+    agg.avg_lateAircraftDelay,
+    (
+        agg.avg_depDelay +
+        agg.avg_arrDelay +
+        agg.avg_carrierDelay +
+        agg.avg_weatherDelay +
+        agg.avg_nasDelay +
+        agg.avg_securityDelay +
+        agg.avg_lateAircraftDelay
+    ) / 7 AS total_avg_delay
 FROM (
 SELECT
-	CASE
-		WHEN (f.Year - p.Year) < 20
-		THEN 'newPlane'
-		ELSE 'oldPlane'
-	END AS plane_age_group,
-	AVG(
-		CASE
-			WHEN f.DepDelay > 0
-			THEN f.DepDelay
-			ELSE NULL
-		END
-		) AS avg_depDelay,
-	AVG(
-		CASE
-			WHEN f.ArrDelay > 0
-			THEN f.ArrDelay
-			ELSE NULL
-		END
-		) AS avg_arrDelay,
-	AVG(
-		CASE
-			WHEN f.CarrierDelay > 0
-			THEN f.CarrierDelay
-			ELSE NULL
-		END
-		) AS avg_carrierDelay,
-	AVG(
-		CASE
-			WHEN f.WeatherDelay > 0
-			THEN f.WeatherDelay
-			ELSE NULL
-		END
-		) AS avg_weatherDelay,
-	AVG(
-		CASE
-			WHEN f.NASDelay > 0
-			THEN f.NASDelay
-			ELSE NULL
-		END
-		) AS avg_nasDelay,
-	AVG(
-		CASE
-			WHEN f.SecurityDelay > 0
-			THEN f.SecurityDelay
-			ELSE NULL
-		END
-		) AS avg_securityDelay,
-	AVG(
-		CASE
-			WHEN f.LateAircraftDelay > 0
-			THEN f.LateAircraftDelay
-			ELSE NULL
-		END
-		) AS avg_lateAircraftDelay
+    CASE
+        WHEN (f.Year - p.Year) < 20
+        THEN 'newPlane'
+        ELSE 'oldPlane'
+    END AS plane_age_group,
+    AVG(
+        CASE
+            WHEN f.DepDelay > 0
+            THEN f.DepDelay
+            ELSE NULL
+        END
+        ) AS avg_depDelay,
+    AVG(
+        CASE
+            WHEN f.ArrDelay > 0
+            THEN f.ArrDelay
+            ELSE NULL
+        END
+        ) AS avg_arrDelay,
+    AVG(
+        CASE
+            WHEN f.CarrierDelay > 0
+            THEN f.CarrierDelay
+            ELSE NULL
+        END
+        ) AS avg_carrierDelay,
+    AVG(
+        CASE
+            WHEN f.WeatherDelay > 0
+            THEN f.WeatherDelay
+            ELSE NULL
+        END
+        ) AS avg_weatherDelay,
+    AVG(
+        CASE
+            WHEN f.NASDelay > 0
+            THEN f.NASDelay
+            ELSE NULL
+        END
+        ) AS avg_nasDelay,
+    AVG(
+        CASE
+            WHEN f.SecurityDelay > 0
+            THEN f.SecurityDelay
+            ELSE NULL
+        END
+        ) AS avg_securityDelay,
+    AVG(
+        CASE
+            WHEN f.LateAircraftDelay > 0
+            THEN f.LateAircraftDelay
+            ELSE NULL
+        END
+        ) AS avg_lateAircraftDelay
 FROM (
-	SELECT
-		Year,
-		TailNum,
-		ArrDelay,
-		DepDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2004.csv'
-	UNION ALL
-	SELECT
-		Year,
-		TailNum,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2005.csv'
-	UNION ALL
-	SELECT
-		Year,
-		TailNum,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2006.csv'
-	UNION ALL
-	SELECT
-		Year,
-		TailNum,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2007.csv'
-	UNION ALL
-	SELECT
-		Year,
-		TailNum,
-		DepDelay,
-		ArrDelay,
-		CarrierDelay,
-		WeatherDelay,
-		NASDelay,
-		SecurityDelay,
-		LateAircraftDelay,
-		Diverted,
-		Cancelled FROM '2008.csv'
-	) AS f
-	LEFT JOIN (
-		SELECT tailnum, Year
-		FROM 'plane-data'
-		) AS p
-	ON f.TailNum = p.tailnum
-	WHERE f.Cancelled = 0
-	AND f.Diverted = 0
+    SELECT
+        Year,
+        TailNum,
+        ArrDelay,
+        DepDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2004.csv'
+    UNION ALL
+    SELECT
+        Year,
+        TailNum,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2005.csv'
+    UNION ALL
+    SELECT
+        Year,
+        TailNum,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2006.csv'
+    UNION ALL
+    SELECT
+        Year,
+        TailNum,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2007.csv'
+    UNION ALL
+    SELECT
+        Year,
+        TailNum,
+        DepDelay,
+        ArrDelay,
+        CarrierDelay,
+        WeatherDelay,
+        NASDelay,
+        SecurityDelay,
+        LateAircraftDelay,
+        Diverted,
+        Cancelled FROM '2008.csv'
+    ) AS f
+    LEFT JOIN (
+        SELECT tailnum, Year
+        FROM 'plane-data'
+        ) AS p
+    ON f.TailNum = p.tailnum
+    WHERE f.Cancelled = 0
+    AND f.Diverted = 0
 Group BY plane_age_group
 ) AS agg
 Order BY agg.plane_age_group")
@@ -570,7 +570,8 @@ Looking at the final output, we can extrapolate that the so called "older planes
 
 
 
-Q C
+<!-- Question C -->
+
 ```{r}
 # loading packages for regression model
 required_packages <- c("DBI", "RSQLite", "dplyr", "dbplyr", "magrittr", "rlang", "ggplot2", "broom", "tidyr", "tidyselect", "vctrs", "pillar", "tibble", "cli", "lifecycle", "generics")
@@ -582,177 +583,180 @@ for (pkg in required_packages) {
   }
 }
 
-# Load 2004-2008 flight data with sampling size of 10%
-years <- 2004:2008
-flights_list <- list()
-for (year in years){
-	table_name <- paste0(year, ".csv")
-
-	flights_tmp <- tbl(con, table_name) %>%
-	filter(Cancelled == 0) %>%
-	# select("UniqueCarrier, Origin, Dest, Month, DayOfWeek, CRSDepTime, CRSArrTime, Diverted, Distance, Cancelled, WeatherDelay") %>%
-	collect()
-
-	# Sample to reduce size (10% of each year)
-	set.seed(123) # for reproducability
-	flights_list[[as.character(year)]] <- flights_tmp %>%
-	sample_frac(0.10)
-
-	# Clean up temp data
-	rm(flights_tmp)
-	gc() #free memory
-}
-
-# join all years
-flights_all <- bind_rows(flights_list)
-
 # Load look up tables & minimized
-carriers <- dbReadTable(con, "carriers") 
+carriers <- dbReadTable(con, "carriers")
 carriers_min <- carriers %>%
   select(Code, Description)
-airports <- dbReadTable(con, "airports") 
+airports <- dbReadTable(con, "airports")
 airports_min <- airports %>%
   select(iata, airport, lat, long)
 
-# join carrier name & airport co-ord
-flights_joined <- flights_all %>%
-  left_join(carriers_min, by = c("UniqueCarrier" = "Code")) %>%
-  rename(CarrierName = Description) %>%
-  left_join(airports_min, by = c("Origin" = "iata")) %>%
-  rename(
-    OriginAirport = airport,
-    OriginLat = lat,
-    OriginLong = long
-  ) %>%
-  left_join(airports_min, by = c("Dest" = "iata")) %>%
-  rename(
-    DestAirport = airport,
-    DestLat = lat,
-    DestLong = long
+# Function to prepare data for a given year
+prepare_year_data <- function(year, con, carriers_min, airports_min) {
+  table_name <- paste0(year, ".csv")
+  
+  flights_tmp <- tbl(con, table_name) %>%
+    filter(Cancelled == 0) %>%
+    collect()
+  
+  # Sample to reduce size (10% of each year)
+  set.seed(123) # for reproducibility
+  flights_sampled <- flights_tmp %>%
+    sample_frac(0.10)
+  
+  # join carrier name & airport co-ord
+  flights_joined <- flights_sampled %>%
+    left_join(carriers_min, by = c("UniqueCarrier" = "Code")) %>%
+    rename(CarrierName = Description) %>%
+    left_join(airports_min, by = c("Origin" = "iata")) %>%
+    rename(
+      OriginAirport = airport,
+      OriginLat = lat,
+      OriginLong = long
+    ) %>%
+    left_join(airports_min, by = c("Dest" = "iata")) %>%
+    rename(
+      DestAirport = airport,
+      DestLat = lat,
+      DestLong = long
+    )
+  
+  # fix DayOfWeek number to day names before modeling
+  flights_joined$DayOfWeek <- factor(
+    flights_joined$DayOfWeek,
+    levels = 1:7,
+    labels = c("Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun")
+  )
+  
+  # fix month lables before modeling
+  flights_joined$Month <- factor(
+    flights_joined$Month,
+    levels = 1:12,
+    labels = month.name
+  )
+  
+  # feature engineering
+  process_time <- function(x) ifelse(is.na(x), NA, floor(x/100))
+  model_data <- flights_joined %>%
+    filter(Cancelled == 0) %>% # keep diverted flights
+    mutate(
+      CRSDepHour = process_time(CRSDepTime),
+      CRSArrHour = process_time(CRSArrTime),
+      CarrierName = as.factor(CarrierName),
+      Diverted = as.factor(Diverted),
+      Year = year
+    ) %>%
+    select(
+      Year,
+      Diverted,
+      Month,
+      DayOfWeek,
+      CRSDepHour,
+      CRSArrHour,
+      CarrierName,
+      Distance,
+      WeatherDelay,
+      OriginLat,
+      OriginLong,
+      DestLat,
+      DestLong
+    ) %>%
+    na.omit()
+  
+  return(model_data)
+}
+
+# Fit logistic regression for each year and collect coefficients
+years <- 2004:2008
+all_coefs <- list()
+
+for (year in years) {
+  message("Processing year: ", year)
+  
+  # Prepare data for this year
+  model_data <- prepare_year_data(year, con, carriers_min, airports_min)
+  
+  # Fit logistic regression model
+  model <- glm(
+    Diverted ~ Month + DayOfWeek + CarrierName +
+      CRSDepHour + CRSArrHour + Distance + WeatherDelay +
+      OriginLat + OriginLong + DestLat + DestLong,
+    data = model_data,
+    family = binomial()
+  )
+  
+  # visualize coefficients
+  coef_df <- tidy(model) %>%
+    mutate(Year = year)
+  
+  all_coefs[[as.character(year)]] <- coef_df
+  
+  # Clean up
+  rm(model_data, model)
+  gc()
+}
+
+# Combine all coefficients
+coef_combined <- bind_rows(all_coefs)
+
+# Remove intercept for cleaner visualization
+coef_combined <- coef_combined %>%
+  filter(term != "(Intercept)")
+
+# Clean up term names for better readability
+coef_combined <- coef_combined %>%
+  mutate(
+    term_clean = gsub("^Month", "Month: ", term),
+    term_clean = gsub("^DayOfWeek", "Day: ", term_clean),
+    term_clean = gsub("^CarrierName", "Carrier: ", term_clean),
+    term_clean = ifelse(term_clean == term, term, term_clean)
   )
 
-# fix DayOfWeek number to day names before modeling
-flights_joined$DayOfWeek <- factor(
-	flights_joined$DayOfWeek,
-	levels = 1:7,
-	labels = c("Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun")
-)
+# Create separate plot for EACH YEAR (2004-2008)
+for (year in years) {
+  year_data <- coef_combined %>%
+    filter(Year == year) %>%
+    arrange(desc(abs(estimate)))
+  
+  p <- ggplot(year_data, aes(x = reorder(term_clean, estimate), y = estimate)) +
+    geom_point(size = 3, color = "steelblue") +
+    geom_errorbar(aes(ymin = estimate - std.error, ymax = estimate + std.error),
+                  width = 0.2, alpha = 0.5) +
+    coord_flip() +
+    labs(
+      title = paste("Logistic Regression Coefficients for Diverted Flights -", year),
+      subtitle = "Features: Month, Day, Carrier, Times, Distance, Weather, Coordinates (10% sample)",
+      x = "Feature",
+      y = "Coefficient Estimate"
+    ) +
+    theme_bw() +
+    theme(
+      axis.text.y = element_text(size = 8),
+      plot.title = element_text(size = 14, face = "bold"),
+      plot.subtitle = element_text(size = 10)
+    )
+  
+  print(p)
+}
 
-# fix month lables before modeling
-flights_joined$Month <- factor(
-	flights_joined$Month,
-	levels = 1:12,
-	labels = month.name
-)
-
-# feature engineering
-process_time <- function(x) ifelse(is.na(x), NA, floor(x/100))
-model_data <- flights_joined %>%
-  filter(Cancelled == 0) %>% # keep diverted flights
-  mutate(
-    CRSDepHour = process_time(CRSDepTime),
-    CRSArrHour = process_time(CRSArrTime),
-    CarrierName = as.factor(CarrierName),
-    Diverted = as.factor(Diverted)
-  ) %>%
-  select(
-    Diverted,
-    Month,
-    DayOfWeek,
-    CRSDepHour,
-    CRSArrHour,
-    CarrierName,
-    Distance,
-    WeatherDelay,
-    OriginLat,
-    OriginLong,
-    DestLat,
-    DestLong
-  ) %>%
-  na.omit()
-
-# create model dummy data
-mm_month <- model.matrix(~ 0 + Month, data = model_data)
-mm_day <- model.matrix(~ 0 + DayOfWeek, data = model_data)
-mm_carrier <- model.matrix(~ 0 + CarrierName, data = model_data)
-
-# Logistical regression using 0 as baseline
-model_2004_2008 <- glm(
-  Diverted ~ 0 + mm_month + mm_day +
-    mm_carrier + CRSDepHour + CRSArrHour +
-    Distance + 
-	WeatherDelay +
-    OriginLat + OriginLong +
-    DestLat + DestLong,
-  data = model_data,
-  family = binomial()
-)
-
-# visualize coefficients
-coef_df <- tidy(model_2004_2008)
-
-# Remove intercept
-coef_df <- coef_df[coef_df$term != "(Intercept)", ]
-# Remove mm_ dummy variable prefix
-coef_df$term <- gsub("^mm_month", "", coef_df$term)
-coef_df$term <- gsub("^mm_day", "", coef_df$term)
-coef_df$term <- gsub("^mm_carrier", "", coef_df$term)
-
-# parse variable
-coef_df$variable <- sub("^(Month|DayOfWeek|CarrierName|CRSDepHour|CRSArrHour|OriginLong|OriginLat|DestLong|DestLat).*", "\\1", coef_df$term)
-coef_df$level <- sub("^(Month|DayOfWeek|CarrierName|CRSDepHour|CRSArrHour|OriginLong|OriginLat|DestLong|DestLat)", "", coef_df$term)
-coef_df$level <- trimws(coef_df$level)
-
-# clean labels
-coef_df$label <- ifelse(
-	coef_df$level == "",
-	coef_df$variable,
-	paste0(coef_df$variable, ": ", coef_df$level)
-)
-
-# Order Months and use names
-month_labels <- paste0("Month: ", month.name)
-coef_df$label <- factor(
-	coef_df$label,
-	levels = c(
-		month_labels,
-		setdiff(unique(coef_df$label), month_labels)
-	)
-)
-
-#  Order day of week
-day_labels <- paste0("DayOfWeek: ", c("Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun"))
-coef_df$label <- factor(
-	coef_df$label,
-	levels = c(
-		day_labels,
-		setdiff(levels(coef_df$label), day_labels)
-	)
-)
-
-# Group coordinate together
-coord_labels <- c("OriginLat", "OriginLong", "DestLat", "DestLong")
-coef_df$label <- factor(
-	coef_df$label,
-	levels = c(
-		setdiff(levels(coef_df$label), coord_labels),
-		coord_labels
-	)
-)
-
-# Plot the points on the graph
-ggplot(coef_df, aes(x = label, y = estimate)) +
-  geom_point() +
-  coord_flip() +
+# Attempt to create comparison plot showing trends across years
+ggplot(coef_combined, aes(x = Year, y = estimate, color = term_clean, group = term_clean)) +
+  geom_line(alpha = 0.6) +
+  geom_point(size = 2) +
   labs(
-    title = "Logistic Regression Coefficients for Diverted Flights (2004-2008) using 10% sampling size",
-    x = "Feature",
-    y = "Coefficient"
+    title = "Coefficient Trends Across Years (2004-2008)",
+    subtitle = "How each feature's impact changes over time",
+    x = "Year",
+    y = "Coefficient Estimate",
+    color = "Feature"
   ) +
   theme_bw() +
   theme(
-	axis.text.y = element_text(size = 7)
-  )
+    legend.position = "right",
+    legend.text = element_text(size = 6),
+    legend.key.size = unit(0.4, "cm")
+  ) +
+  scale_x_continuous(breaks = 2004:2008)
 
 ```
 
