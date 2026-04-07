@@ -411,7 +411,7 @@ print(avg_delays_plane_age)
 ```
 
 
-
+<!-- alternative solution to question B -->
 ```{r}
 postive_delays_plane_age <- dbGetQuery(con, "SELECT
     agg.plane_age_group,
